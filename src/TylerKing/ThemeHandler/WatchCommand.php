@@ -50,7 +50,7 @@ class WatchCommand extends BaseCommand {
         
           # Ignore the file?
           if ($this->isIgnoredFile($file_base) === true) {
-            continue;
+            return;
           }
 
           if (! $ftp->directoryExists(new Directory("{$config['ftp']['path']}/{$directory_base}"))) {
@@ -75,7 +75,7 @@ class WatchCommand extends BaseCommand {
         
           # Ignore the file?
           if ($this->isIgnoredFile($file_base) === true) {
-            continue;
+            return;
           }
 
           # Delete the file
