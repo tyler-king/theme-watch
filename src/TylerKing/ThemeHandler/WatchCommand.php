@@ -74,7 +74,7 @@ class WatchCommand extends BaseCommand {
           $file_base = $this->getFileBase($path);
         
           # Ignore the file?
-          if ($this->isIgnoredFile($file_base) === true || ! $file) {
+          if ($this->isIgnoredFile($file_base) === true) {
             continue;
           }
 
