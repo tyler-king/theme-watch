@@ -72,7 +72,6 @@ class WatchCommand extends BaseCommand {
           break;
         case Event::RESOURCE_DELETED :
           $file_base = $this->getFileBase($path);
-          $file      = $ftp->findFileByName("{$config['ftp']['path']}/{$file_base}");
         
           # Ignore the file?
           if ($this->isIgnoredFile($file_base) === true || ! $file) {
@@ -80,7 +79,10 @@ class WatchCommand extends BaseCommand {
           }
 
           # Delete the file
-          $ftp->delete($file);
+          $file = $ftp->findFileByName("{$config['ftp']['path']}/{$file_base}");
+          if ($file) {
+            $ftp->delete($file);
+          }
         
           # Tell the console what we did
           $output->writeln(sprintf(
