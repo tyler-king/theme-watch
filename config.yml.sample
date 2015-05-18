@@ -1,0 +1,14 @@
+ftp:
+  type: ssl    # ssl or ~ for a normal connection
+  host: ftp.yourawesomeplace.dev     # your FTP hostname
+  username: hippo     # your FTP username/login
+  password: hunter2    # your FTP password
+  path: /public_html/wp-content/themes/cool-theme     # path to push changes
+  
+theme:
+  interval: 1     # how often to watch for file changes in seconds
+  ignore: 
+    # this uses php's fnmatch which accept regular expressions to ignore files or folder
+    - config.yml
+    - css/*
+    - *.scss
