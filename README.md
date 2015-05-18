@@ -30,7 +30,7 @@ Please view `config.yml.sample` for an example configuration. Setup your own `co
 Symlink the command to your local bin for easy access
 
 ```bash
-ln -s /{path}/{to}/{this}/{repo} /usr/local/bin/theme-watcher
+ln -s /{path}/{to}/{this}/{repo}/bin/theme /usr/local/bin/theme-watcher
 ```
 
 Now you can simply type `theme-watcher` and the command *should* work.
