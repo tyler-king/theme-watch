@@ -18,12 +18,6 @@ class CheckCommand extends BaseCommand {
   protected function execute(InputInterface $input, OutputInterface $output) {
     # Start the FTP connection
     $ftp = $this->startFTP();
-
-    # Check current directory
-    $exists = $ftp->directoryExists(new Directory($this->config['ftp']['path']));
-    if (! $exists) {
-      throw new Exception("Path \"{$this->config['ftp']['path']}\" is invalid");
-    }
     
     # All ok
     $output->writeln('<info>Configuration is OK</info>');

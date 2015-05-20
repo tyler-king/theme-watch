@@ -76,12 +76,28 @@ class UploadCommand extends BaseCommand {
   }
   
   private function uploadFiles(OutputInterface $output, $ftp, $files) {
-    $i         = 1;
+    $i         = 0;
     $filecount = sizeof($files);
     
     foreach($files as $file) {
+      $i++;
+      
       # Ignore the file?
-      if ($this->isIgnoredFile($file_base) === true) {
+      if ($this->isIgnoredFile($file) === true) {
+        continue;
+      }
+      
+      # Does the file exist?
+      if (! is_file($file)) {
+        # Whoops, let them know...
+        $output->writeln(sprintf(
+          "<errpr>[%s] %d/%d Non-existant file %s</error>",
+          date('H:m:s'),
+          $i,
+          $filecount,
+          $file
+        ));
+        
         continue;
       }
       
@@ -102,8 +118,6 @@ class UploadCommand extends BaseCommand {
         $filecount,
         $file
       ));
-      
-      $i++;
     }
   }
 }

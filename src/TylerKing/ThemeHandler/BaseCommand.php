@@ -5,6 +5,8 @@ use Symfony\Component\Console\Command\Command;
 use Touki\FTP\Connection\Connection;
 use Touki\FTP\Connection\SSLConnection;
 use Touki\FTP\FTPFactory;
+use Touki\FTP\Model\Directory;
+use Exception;
 
 class BaseCommand extends Command {
   protected $config,
@@ -21,7 +23,7 @@ class BaseCommand extends Command {
   
   protected function startConnection() {
     # Start a new connection with details given
-    if ($this->config['ftp']['type'] == 'ssl') {
+    if (isset($this->config['ftp']['type']) && $this->config['ftp']['type'] == 'ssl') {
       $this->connection = new SSLConnection(
         $this->config['ftp']['host'],
         $this->config['ftp']['username'],
@@ -47,9 +49,17 @@ class BaseCommand extends Command {
   protected function startFTP() {
     $this->startConnection();
 
-    # Build the FTP and move into the directory of the path provided
+    # Build the FTP 
     $factory = new FTPFactory;
     $ftp = $factory->build($this->connection);
+    
+    # Check current directory in config
+    $exists = $ftp->directoryExists(new Directory($this->config['ftp']['path']));
+    if (! $exists) {
+      throw new Exception("Path \"{$this->config['ftp']['path']}\" is invalid");
+    }
+    
+    # Move into the directory of the path provided
     $factory->getWrapper()->chdir($this->config['ftp']['path']);
     
     return $ftp;
