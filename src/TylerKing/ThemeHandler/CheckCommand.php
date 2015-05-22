@@ -17,10 +17,12 @@ class CheckCommand extends BaseCommand {
 
   protected function execute(InputInterface $input, OutputInterface $output) {
     # Start the FTP connection
-    $ftp = $this->startFTP();
+    $this->startFTP();
     
     # All ok
     $output->writeln('<info>Configuration is OK</info>');
+    $output->writeln(sprintf(">>> <comment>Local: %s</comment>", getcwd()));
+    $output->writeln(sprintf(">>> <comment>Remote: %s</comment>", $this->config['ftp']['path']));
     
     $this->stopFTP();
   }

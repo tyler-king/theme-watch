@@ -10,26 +10,26 @@ use Exception;
 
 class BaseCommand extends Command {
   protected $config,
-            $connection
+            $connection,
+            $ftp,
+            $wrapper
   ;
   
   public function setConfig($config) {
     $this->config = $config;
   }
   
-  public function getConfig() {
-    return $config;
-  }
-  
   protected function startConnection() {
     # Start a new connection with details given
     if (isset($this->config['ftp']['type']) && $this->config['ftp']['type'] == 'ssl') {
+      # SSL connection
       $this->connection = new SSLConnection(
         $this->config['ftp']['host'],
         $this->config['ftp']['username'],
         $this->config['ftp']['password']
       );
     } else {
+      # Standard connection
       $this->connection = new Connection(
         $this->config['ftp']['host'],
         $this->config['ftp']['username'],
@@ -38,39 +38,52 @@ class BaseCommand extends Command {
     }
     
     $this->connection->open();
+  }
+  
+  protected function stopConnection() {
+    $this->connection->close();
     
-    return $this->connection;
+    $this->connection = null;
   }
-  
-  public function getConnection() {
-    return $this->connection;
-  }
-  
-  protected function startFTP() {
-    $this->startConnection();
 
-    # Build the FTP 
-    $factory = new FTPFactory;
-    $ftp = $factory->build($this->connection);
+  protected function startFTP() {
+    if (null === $this->connection) {
+      # No connection yet
+      $this->startConnection();
+    }
     
-    # Check current directory in config
-    $exists = $ftp->directoryExists(new Directory($this->config['ftp']['path']));
+    # Build the FTP 
+    $this->factory = new FTPFactory;
+    $this->ftp     = $this->factory->build($this->connection);
+    $this->wrapper = $this->factory->getWrapper();
+    
+    # Confirm remote path exists before changing directory remotely
+    $exists = $this->ftp->directoryExists(new Directory($this->config['ftp']['path']));
     if (! $exists) {
       throw new Exception("Path \"{$this->config['ftp']['path']}\" is invalid");
     }
     
     # Move into the directory of the path provided
-    $factory->getWrapper()->chdir($this->config['ftp']['path']);
-    
-    return $ftp;
+    $this->wrapper->chdir($this->config['ftp']['path']);
   }
   
   protected function stopFTP() {
-    $this->connection->close();
+    if ($this->connection) {
+      $this->connection->close();
+    }
+    
+    $this->ftp        = null;
+    $this->wrapper    = null;
   }
   
   protected function getFileBase($file) {
-    # Strips out the current working directory from the path (makes both paths local and remote to be relative to each other)
+    /*
+     *  Makes both paths relative to eachother
+     *  Assume CWD is cool-folder/
+     *  Local: /Users/tyler/Development/cool-folder/css/main.css
+     *  Remote: /cool-folder/css/main.css
+     *  Base will change Local to match Remote
+     */
     $base = substr($file, strpos($file, getcwd()) + strlen(getcwd()) + 1);
     
     # Fix for Windows environments (convert \ to /)
@@ -78,15 +91,17 @@ class BaseCommand extends Command {
   }
   
   protected function isIgnoredFile($file) {
-    if (sizeof($this->config['theme']['ignore']) === 0) {
-      # Nothing to ignore
-      return null;
+    if (in_array(pathinfo($file, PATHINFO_BASENAME), ['.', '..']) || $file[0] == '.') {
+      # Ignore dot "files"
+      return true;
     }
     
-    foreach($this->config['theme']['ignore'] as $pattern) {
-      if (fnmatch($pattern, $file)) {
-        # Pattern matches, let the code know we need to ignore this file
-        return true;
+    if (sizeof($this->config['theme']['ignore']) > 0) {
+      foreach($this->config['theme']['ignore'] as $pattern) {
+        if (fnmatch($pattern, $file)) {
+          # Pattern matches, let the code know we need to ignore this file
+          return true;
+        }
       }
     }
     

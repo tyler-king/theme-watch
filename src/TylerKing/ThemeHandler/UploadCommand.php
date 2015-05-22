@@ -26,22 +26,18 @@ class UploadCommand extends BaseCommand {
   }
 
   protected function execute(InputInterface $input, OutputInterface $output) {
-    # Start the FTP connection
-    $ftp = $this->startFTP();
-
-    $files = $input->getArgument('files');
-    if (sizeof($files) === 0) {
-      # Upload all the files since none are supplied
-      $this->uploadAllFiles($output, $ftp);
+    $this->startFTP();
+    
+    if (sizeof($input->getArgument('files')) === 0) {
+      $this->uploadAllFiles($input, $output);
     } else {
-      # We have a list, upload it
-      $this->uploadFiles($output, $ftp, $files);
+      $this->uploadFiles($input, $output);
     }
     
     $this->stopFTP();
   }
   
-  private function uploadAllFiles(OutputInterface $output, $ftp) {
+  private function uploadAllFiles(InputInterface $input, OutputInterface $output) {
     $i        = 1;
     $files    = new RecursiveDirectoryIterator(getcwd());
     $iterator = new RecursiveIteratorIterator($files);
@@ -51,17 +47,17 @@ class UploadCommand extends BaseCommand {
       $directory_base = pathinfo($file_base, PATHINFO_DIRNAME);
       
       # Ignore the file? (and dots)
-      if ($this->isIgnoredFile($file_base) === true || substr($file_base, 0, 1) == '.' || ! is_file($file->getPathname())) {
+      if ($this->isIgnoredFile($file_base) === true || ! is_file($file->getPathname())) {
         continue;
       }
       
-      if (! $ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
-        # Create directory
-        $ftp->create(new Directory("{$this->config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
+      if (! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
+        # Create directories, they dont exist
+        $this->ftp->create(new Directory("{$this->config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
       }
       
       # Upload the file to the location
-      $ftp->upload(new File($file_base), $file_base);
+      $this->ftp->upload(new File($file_base), $file_base);
 
       # Tell the console what we did
       $output->writeln(sprintf(
@@ -75,8 +71,9 @@ class UploadCommand extends BaseCommand {
     }
   }
   
-  private function uploadFiles(OutputInterface $output, $ftp, $files) {
+  private function uploadFiles(InputInterface $input, OutputInterface $output) {
     $i         = 0;
+    $files     = $input->getArgument('files');
     $filecount = sizeof($files);
     
     foreach($files as $file) {
@@ -91,7 +88,7 @@ class UploadCommand extends BaseCommand {
       if (! is_file($file)) {
         # Whoops, let them know...
         $output->writeln(sprintf(
-          "<errpr>[%s] %d/%d Non-existant file %s</error>",
+          "<error>[%s] %d/%d No such file %s</error>",
           date('H:m:s'),
           $i,
           $filecount,
@@ -102,13 +99,13 @@ class UploadCommand extends BaseCommand {
       }
       
       $directory_base = pathinfo($file, PATHINFO_DIRNAME);
-      if (! $ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
-        # Create directory
-        $ftp->create(new Directory("{$this->config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
+      if (! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
+        # Create directories, they dont exist
+        $this->ftp->create(new Directory("{$this->config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
       }
       
       # Upload the file to the location
-      $ftp->upload(new File($file), $file);
+      $this->ftp->upload(new File($file), $file);
 
       # Tell the console what we did
       $output->writeln(sprintf(

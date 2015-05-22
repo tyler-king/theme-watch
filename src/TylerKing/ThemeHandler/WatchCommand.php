@@ -15,6 +15,8 @@ use Touki\FTP\Model\File;
 use Touki\FTP\Model\Directory;
 
 class WatchCommand extends BaseCommand {
+  protected $last_time;
+  
   protected function configure() {
     $this
       ->setName('theme:watch')
@@ -24,42 +26,31 @@ class WatchCommand extends BaseCommand {
 
   protected function execute(InputInterface $input, OutputInterface $output) {
     # Start the FTP connection
-    $ftp = $this->startFTP();
+    $this->startFTP();
 
     # Setup the watcher
     $watcher = new Watcher(new Tracker, new Filesystem);
     
     # Setup the listener
     $listener = $watcher->watch(getcwd());
-    $config   = $this->config;
-    
-    $output->writeln("<info>Changes will be pushed to:</info> <comment>{$this->config['ftp']['path']}</comment>");
-    $output->writeln('');
-    
-    $listener->anything(function($event, $resource, $path) use($ftp, $config, $output) {
-      if ($path{0} == '.') {
+    $listener->onAnything(function($event, $resource, $path) use($output) {
+      $file_base = $this->getFileBase($path);
+      if ($this->isIgnoredFile($file_base) === true) {
         return;
       }
       
       switch($event->getCode()) {
         case Event::RESOURCE_MODIFIED :
         case Event::RESOURCE_CREATED :
-          # Get the file base compared to the remote base
-          $file_base      = $this->getFileBase($path);
           $directory_base = pathinfo($file_base, PATHINFO_DIRNAME);
-        
-          # Ignore the file?
-          if ($this->isIgnoredFile($file_base) === true) {
-            return;
-          }
 
-          if (! $ftp->directoryExists(new Directory("{$config['ftp']['path']}/{$directory_base}"))) {
-            # Create directory
-            $ftp->create(new Directory("{$config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
+          if (! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
+            # Create directories, they dont exist
+            $this->ftp->create(new Directory("{$config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
           }
 
           # Upload the file to the location
-          $ftp->upload(new File($file_base), $path);
+          $this->ftp->upload(new File($file_base), $path);
 
           # Tell the console what we did
           $output->writeln(sprintf(
@@ -71,32 +62,39 @@ class WatchCommand extends BaseCommand {
         
           break;
         case Event::RESOURCE_DELETED :
-          $file_base = $this->getFileBase($path);
-        
-          # Ignore the file?
-          if ($this->isIgnoredFile($file_base) === true) {
-            return;
-          }
-
           # Delete the file
-          $file = $ftp->findFileByName("{$config['ftp']['path']}/{$file_base}");
+          $file = $this->ftp->findFileByName("{$this->config['ftp']['path']}/{$file_base}");
           if ($file) {
-            $ftp->delete($file);
-          }
+            $this->ftp->delete($file);
         
-          # Tell the console what we did
-          $output->writeln(sprintf(
-            "<comment>[%s] Deleted %s</comment>",
-            date('H:m:s'),
-            $file_base
-          ));
+            # Tell the console what we did
+            $output->writeln(sprintf(
+              "<comment>[%s] Deleted %s</comment>",
+              date('H:m:s'),
+              $file_base
+            ));
+          }
         
           break;
       }
     });
     
+    $output->writeln(">>> <comment>Changes will be pushed to: {$this->config['ftp']['path']}</comment>");
+    $output->writeln('');
+    
     # Start watching
-    $watcher->start($this->config['theme']['interval']);
+    $this->last_time = time();
+    $watcher->start($this->config['theme']['interval'], null, function() use($output) {
+      # Determine if we need to say hello to the FTP connection again to keep it alive
+      if ((time() - $this->last_time) / 60 > 4) {
+        # We need to say hello
+        $this->wrapper->raw('NOOP');
+        
+        $this->last_time = time();
+        
+        $output->writeln('>>> <comment>Preventing timeout</comment>');
+      }
+    });
     
     $this->stopFTP();
   }
