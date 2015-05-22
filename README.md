@@ -49,6 +49,8 @@ Upload entire local theme to remote or list out the files (seperated by spaces)
 
 Watches the current directory for file modifications, creations, and deletions; pushes it to the remote location via FTP
 
-## Screenshot
+## In-Action
 
-![Examples](screenshot.png)
+http://gfycat.com/ImmenseOpenBorer
+
+
