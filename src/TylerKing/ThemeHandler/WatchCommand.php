@@ -27,7 +27,7 @@ class WatchCommand extends BaseCommand {
   protected function execute(InputInterface $input, OutputInterface $output) {
     # Start the FTP connection
     $this->startFTP();
-
+    
     # Setup the watcher
     $watcher = new Watcher(new Tracker, new Filesystem);
     
@@ -82,20 +82,30 @@ class WatchCommand extends BaseCommand {
     $output->writeln(">>> <comment>Changes will be pushed to: {$this->config['ftp']['path']}</comment>");
     $output->writeln('');
     
+    # Catch terminates to clean up
+    $cleanup = function() use($output) {
+      $this->stopFTP();
+      
+      $output->writeln("\n>>> <info>Done</info>");
+      
+      exit;
+    };
+    pcntl_signal(SIGINT, $cleanup);
+    pcntl_signal(SIGTERM, $cleanup);
+
     # Start watching
     $this->last_time = time();
     $watcher->start($this->config['theme']['interval'], null, function() use($output) {
+      pcntl_signal_dispatch();
+
       # Determine if we need to say hello to the FTP connection again to keep it alive
       if ((time() - $this->last_time) / 60 > 4) {
         # We need to say hello
+        $output->writeln('>>> <comment>Preventing timeout</comment>');
         $this->wrapper->raw('NOOP');
         
         $this->last_time = time();
-        
-        $output->writeln('>>> <comment>Preventing timeout</comment>');
       }
     });
-    
-    $this->stopFTP();
   }
 }
