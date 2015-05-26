@@ -98,7 +98,7 @@ class WatchCommand extends BaseCommand {
     # Start watching
     $this->last_time = time();
     $watcher->start($this->config['theme']['interval'], null, function() use($output) {
-      if (function_exists('pcntl_signal') { pcntl_signal_dispatch(); }
+      if (function_exists('pcntl_signal')) { pcntl_signal_dispatch(); }
 
       # Determine if we need to say hello to the FTP connection again to keep it alive
       if ((time() - $this->last_time) / 60 > 4) {
