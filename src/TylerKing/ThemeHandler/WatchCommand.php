@@ -83,20 +83,22 @@ class WatchCommand extends BaseCommand {
     $output->writeln('');
     
     # Catch terminates to clean up
-    $cleanup = function() use($output) {
-      $this->stopFTP();
-      
-      $output->writeln("\n>>> <info>Done</info>");
-      
-      exit;
-    };
-    pcntl_signal(SIGINT, $cleanup);
-    pcntl_signal(SIGTERM, $cleanup);
+    if (function_exists('pcntl_signal')) {
+      $cleanup = function() use($output) {
+        $this->stopFTP();
+
+        $output->writeln("\n>>> <info>Done</info>");
+
+        exit;
+      };
+      pcntl_signal(SIGINT, $cleanup);
+      pcntl_signal(SIGTERM, $cleanup);
+    }
 
     # Start watching
     $this->last_time = time();
     $watcher->start($this->config['theme']['interval'], null, function() use($output) {
-      pcntl_signal_dispatch();
+      if (function_exists('pcntl_signal') { pcntl_signal_dispatch(); }
 
       # Determine if we need to say hello to the FTP connection again to keep it alive
       if ((time() - $this->last_time) / 60 > 4) {
