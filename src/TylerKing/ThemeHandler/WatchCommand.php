@@ -46,7 +46,7 @@ class WatchCommand extends BaseCommand {
 
           if (! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
             # Create directories, they dont exist
-            $this->ftp->create(new Directory("{$config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
+            $this->ftp->create(new Directory("{$this->config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
           }
 
           # Upload the file to the location
