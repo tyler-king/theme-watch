@@ -6,33 +6,12 @@ use TylerKing\ThemeHandler\WatchCommand;
 use TylerKing\ThemeHandler\UploadCommand;
 use TylerKing\ThemeHandler\CheckCommand;
 use Symfony\Component\Console\Application;
-use Symfony\Component\Yaml\Parser;
-
-# Get the config
-$config_path = getcwd().'/config.yml';
-if (! is_file($config_path)) {
-  # Not the best way of handling, but oh well
-  print "No config file located at {$config_path}";
-  exit;
-}
-$yaml   = new Parser;
-$config = $yaml->parse(file_get_contents($config_path));
 
 $application = new Application;
-
-# Setup the watch command
-$watch_command = new WatchCommand;
-$watch_command->setConfig($config);
-$application->add($watch_command);
-
-# Setup the upload command
-$upload_command = new UploadCommand;
-$upload_command->setConfig($config);
-$application->add($upload_command);
-
-# Setup the check command
-$check_command = new CheckCommand;
-$check_command->setConfig($config);
-$application->add($check_command);
+$application->addCommands([
+  new WatchCommand,
+  new UploadCommand,
+  new CheckCommand
+]);
 
 $application->run();

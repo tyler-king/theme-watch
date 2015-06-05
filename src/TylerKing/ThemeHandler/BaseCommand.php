@@ -2,6 +2,8 @@
 namespace TylerKing\ThemeHandler;
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Exception\ParseException;
 use Touki\FTP\Connection\Connection;
 use Touki\FTP\Connection\SSLConnection;
 use Touki\FTP\FTPFactory;
@@ -15,8 +17,19 @@ class BaseCommand extends Command {
             $wrapper
   ;
   
-  public function setConfig($config) {
-    $this->config = $config;
+  public function setupConfig() {
+    # Get the config
+    $config_path = getcwd().'/config.yml';
+    if (! is_file($config_path)) {
+      # Not the best way of handling, but oh well
+      throw new Exception('Configuration file missing from this directory.');
+    }
+    
+    try {
+      $this->config = (new Parser)->parse(file_get_contents($config_path));
+    } catch(ParseException $e) {
+      throw new Exception(sprintf("Unable to parse the YAML string: %s", $e->getMessage()));
+    }
   }
   
   protected function startConnection() {

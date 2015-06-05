@@ -26,6 +26,10 @@ class UploadCommand extends BaseCommand {
   }
 
   protected function execute(InputInterface $input, OutputInterface $output) {
+    # Setup the config
+    $this->setupConfig();
+    
+    # Start the FTP connection
     $this->startFTP();
     
     if (sizeof($input->getArgument('files')) === 0) {
