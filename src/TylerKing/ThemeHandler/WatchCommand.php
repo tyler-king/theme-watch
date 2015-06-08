@@ -13,8 +13,6 @@ use JasonLewis\ResourceWatcher\Event;
 use Touki\FTP\FTP;
 use Touki\FTP\Model\File;
 use Touki\FTP\Model\Directory;
-use Joli\JoliNotif\Notification;
-use Joli\JoliNotif\NotifierFactory;
 
 class WatchCommand extends BaseCommand {
   protected $last_time;

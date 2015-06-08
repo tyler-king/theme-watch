@@ -45,7 +45,7 @@ Confirms your config (ftp and paths) are OK
 
 Upload entire local theme to remote or list out the files (seperated by spaces)
 
-`bin/theme theme:watch`
+`bin/theme theme:watch [--timeout-prevent=4]`
 
 Watches the current directory for file modifications, creations, and deletions; pushes it to the remote location via FTP
 
