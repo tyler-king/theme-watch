@@ -54,7 +54,7 @@ class WatchCommand extends BaseCommand {
         case Event::RESOURCE_CREATED :
           $directory_base = pathinfo($file_base, PATHINFO_DIRNAME);
 
-          if (! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
+          if ($directory_base != '.' && ! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
             # Create directories, they dont exist
             $this->ftp->create(new Directory("{$this->config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
           }

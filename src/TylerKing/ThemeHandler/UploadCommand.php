@@ -54,8 +54,8 @@ class UploadCommand extends BaseCommand {
       if ($this->isIgnoredFile($file_base) === true || ! is_file($file->getPathname())) {
         continue;
       }
-      
-      if (! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
+
+      if ($directory_base != '.' && ! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
         # Create directories, they dont exist
         $this->ftp->create(new Directory("{$this->config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
       }
@@ -103,7 +103,7 @@ class UploadCommand extends BaseCommand {
       }
       
       $directory_base = pathinfo($file, PATHINFO_DIRNAME);
-      if (! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
+      if ($directory_base != '.' && ! $this->ftp->directoryExists(new Directory("{$this->config['ftp']['path']}/{$directory_base}"))) {
         # Create directories, they dont exist
         $this->ftp->create(new Directory("{$this->config['ftp']['path']}/{$directory_base}"), [FTP::RECURSIVE => true]);
       }

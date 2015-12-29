@@ -101,7 +101,7 @@ class BaseCommand extends Command {
      *  Base will change Local to match Remote
      */
     $base = substr($file, strpos($file, getcwd()) + strlen(getcwd()) + 1);
-    
+
     # Fix for Windows environments (convert \ to /)
     return str_replace('\\', '/', $base);
   }
