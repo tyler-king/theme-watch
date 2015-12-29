@@ -3,7 +3,7 @@
         "jasonlewis/resource-watcher": "1.1.*",
         "symfony/console": "2.6.*-dev",
         "symfony/yaml": "2.6.*-dev",
-        "touki/ftp": "1.1.*"
+        "touki/ftp": "1.2.*"
     },
     "bin": ["bin/theme"],
     "autoload": {

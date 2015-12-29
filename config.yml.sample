@@ -1,5 +1,6 @@
 ftp:
   type: ssl    # ssl or ~ for a normal connection
+  passive: true     # true for passive mode or false for no
   host: ftp.yourawesomeplace.dev     # your FTP hostname
   username: hippo     # your FTP username/login
   password: hunter2    # your FTP password

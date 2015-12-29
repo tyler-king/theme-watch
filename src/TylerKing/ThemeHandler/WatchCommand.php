@@ -37,7 +37,7 @@ class WatchCommand extends BaseCommand {
     
     # Start the FTP connection
     $this->startFTP();
-    
+
     # Setup the watcher
     $watcher = new Watcher(new Tracker, new Filesystem);
     

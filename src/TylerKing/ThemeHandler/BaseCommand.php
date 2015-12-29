@@ -69,6 +69,9 @@ class BaseCommand extends Command {
     $this->factory = new FTPFactory;
     $this->ftp     = $this->factory->build($this->connection);
     $this->wrapper = $this->factory->getWrapper();
+    if (isset($this->config['ftp']['passive']) && $this->config['ftp']['passive'] == true) {
+      $this->wrapper->pasv(true);
+    }
     
     # Confirm remote path exists before changing directory remotely
     $exists = $this->ftp->directoryExists(new Directory($this->config['ftp']['path']));
