@@ -1,6 +1,6 @@
 {
     "require": {
-        "jasonlewis/resource-watcher": "1.1.*",
+        "jasonlewis/resource-watcher": "1.2.*",
         "symfony/console": "2.6.*-dev",
         "symfony/yaml": "2.6.*-dev",
         "touki/ftp": "1.2.*"
